@@ -19,6 +19,7 @@ public class MainActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         // Initialize ViewPager2 and TabLayout
         ViewPager2 viewPager = findViewById(R.id.viewPager);
