@@ -6,4 +6,13 @@
     </style>
 
     <style name="Theme.MadCal" parent="Base.Theme.MadCal" />
+
+    <style name="CustomToolbar" parent="Widget.AppCompat.Toolbar">
+        <item name="actionOverflowButtonStyle">@style/CustomOverflow</item>
+    </style>
+
+    <style name="CustomOverflow" parent="Widget.AppCompat.ActionButton.Overflow">
+        <item name="android:src">@drawable/wisclogo</item>
+    </style>
+
 </resources>

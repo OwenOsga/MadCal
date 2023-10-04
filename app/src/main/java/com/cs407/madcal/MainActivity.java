@@ -9,6 +9,7 @@ import com.google.android.material.tabs.TabLayoutMediator;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -38,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
                     tab.setText("To Do");
                     break;
                 case 2:
-                    tab.setText("Placeholder 1");
+                    tab.setText("UW Map");
                     break;
                 case 3:
                     tab.setText("Placeholder 2");
@@ -58,18 +59,18 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
 
-        if (itemId == R.id.nav_calendar) {
-            // Handle calendar action
+        if (itemId == R.id.help_menu) {
+            Toast.makeText(this, "WIP", Toast.LENGTH_SHORT).show();
             return true;
-        } else if (itemId == R.id.nav_todo) {
-            // Handle to do list action
-            return true;
-        } else if (itemId == R.id.nav_placeholder1) {
-            // Handle placeholder 1 action
-            return true;
-        } else if (itemId == R.id.nav_placeholder2) {
-            // Handle placeholder 2 action
-            return true;
+//        } else if (itemId == R.id.nav_todo) {
+//            // Handle to do list action
+//            return true;
+//        } else if (itemId == R.id.nav_placeholder1) {
+//            // Handle placeholder 1 action
+//            return true;
+//        } else if (itemId == R.id.nav_placeholder2) {
+//            // Handle placeholder 2 action
+//            return true;
         } else {
             return super.onOptionsItemSelected(item);
         }

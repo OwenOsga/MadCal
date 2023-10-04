@@ -16,15 +16,15 @@ public class SectionsPagerAdapter extends FragmentStateAdapter {
     public Fragment createFragment(int position) {
         switch (position) {
             case 0:
-                return new CalendarFragment();  // Assuming you have a class named CalendarFragment
+                return new CalendarFragment();
             case 1:
-                return new TodoFragment();     // ...and TodoFragment
+                return new TodoFragment();
             case 2:
-                return new Placeholder1Fragment(); // ...and so on
+                return new MapFragment();
             case 3:
                 return new Placeholder2Fragment();
             default:
-                return new CalendarFragment();  // Default to the calendar fragment if something goes wrong
+                return new CalendarFragment();
         }
     }
 
