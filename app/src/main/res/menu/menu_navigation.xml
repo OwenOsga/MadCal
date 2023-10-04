@@ -1,0 +1,14 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_calendar"
+        android:title="Calendar" />
+    <item
+        android:id="@+id/nav_todo"
+        android:title="To Do List" />
+    <item
+        android:id="@+id/nav_placeholder1"
+        android:title="Placeholder 1" />
+    <item
+        android:id="@+id/nav_placeholder2"
+        android:title="Placeholder 2" />
+</menu>
