@@ -13,6 +13,8 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
+    private ViewPager2 viewPager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -22,14 +24,12 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
-        // Initialize ViewPager2 and TabLayout
-        ViewPager2 viewPager = findViewById(R.id.viewPager);
+        viewPager = findViewById(R.id.viewPager);
         TabLayout tabLayout = findViewById(R.id.tabLayout);
 
         SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this);
         viewPager.setAdapter(sectionsPagerAdapter);
 
-        // Link TabLayout with ViewPager2
         new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
             switch (position) {
                 case 0:
@@ -46,6 +46,19 @@ public class MainActivity extends AppCompatActivity {
                     break;
             }
         }).attach();
+
+        // Disable swipe for the map tab
+        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                if (position == 2) { // Assuming the map is at position 2
+                    viewPager.setUserInputEnabled(false);
+                } else {
+                    viewPager.setUserInputEnabled(true);
+                }
+            }
+        });
     }
 
     @Override
@@ -62,15 +75,6 @@ public class MainActivity extends AppCompatActivity {
         if (itemId == R.id.help_menu) {
             Toast.makeText(this, "WIP", Toast.LENGTH_SHORT).show();
             return true;
-//        } else if (itemId == R.id.nav_todo) {
-//            // Handle to do list action
-//            return true;
-//        } else if (itemId == R.id.nav_placeholder1) {
-//            // Handle placeholder 1 action
-//            return true;
-//        } else if (itemId == R.id.nav_placeholder2) {
-//            // Handle placeholder 2 action
-//            return true;
         } else {
             return super.onOptionsItemSelected(item);
         }
