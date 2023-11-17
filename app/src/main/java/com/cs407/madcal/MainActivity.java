@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
                     tab.setText("UW Map");
                     break;
                 case 3:
-                    tab.setText("Placeholder 2");
+                    tab.setText("Schedule");
                     break;
             }
         }).attach();

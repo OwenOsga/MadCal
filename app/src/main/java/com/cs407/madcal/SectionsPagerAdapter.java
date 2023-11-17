@@ -22,7 +22,7 @@ public class SectionsPagerAdapter extends FragmentStateAdapter {
             case 2:
                 return new MapFragment();
             case 3:
-                return new Placeholder2Fragment();
+                return new ScheduleFragment();
             default:
                 return new CalendarFragment();
         }
