@@ -14,11 +14,14 @@ import android.widget.Toast;
 public class MainActivity extends AppCompatActivity {
 
     private ViewPager2 viewPager;
+    private String wiscId; // Variable to hold the WISC ID
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        wiscId = getIntent().getStringExtra("WISC_ID"); // Retrieve the WISC ID
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -27,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
         viewPager = findViewById(R.id.viewPager);
         TabLayout tabLayout = findViewById(R.id.tabLayout);
 
-        SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this);
+        SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this, wiscId); // Pass the WISC ID
         viewPager.setAdapter(sectionsPagerAdapter);
 
         new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
@@ -46,7 +49,6 @@ public class MainActivity extends AppCompatActivity {
                     break;
             }
         }).attach();
-
         // Disable swipe for the map tab
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
