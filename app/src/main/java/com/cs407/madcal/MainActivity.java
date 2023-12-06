@@ -6,6 +6,7 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -75,10 +76,26 @@ public class MainActivity extends AppCompatActivity {
         int itemId = item.getItemId();
 
         if (itemId == R.id.help_menu) {
-            Toast.makeText(this, "WIP", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, ":)", Toast.LENGTH_SHORT).show();
             return true;
-        } else {
-            return super.onOptionsItemSelected(item);
+        } else if (itemId == R.id.action_logout) {
+            // Handle logout
+            logout();
+            return true;
         }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void logout() {
+        // Implement your logout logic here
+        // For example, clear any saved user data or preferences
+
+        // Navigate back to the LoginActivity
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
+
+        // Close MainActivity
+        finish();
     }
 }
