@@ -1,12 +1,12 @@
 package com.cs407.madcal;
 
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.content.Intent;
-import android.app.Activity;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,14 +21,21 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Check if user is already logged in
+        SharedPreferences sharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+        boolean isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
+
+        if (isLoggedIn) {
+            navigateToMainActivity();
+            return; // Important to prevent further execution of onCreate
+        }
+
         setContentView(R.layout.activity_login);
 
-        Toolbar toolbar = findViewById(R.id.login_toolbar);
-        setSupportActionBar(toolbar);
-
+        toolbarSetup();
         databaseHelper = new DatabaseHelper(this);
-        editTextWiscId = (EditText) findViewById(R.id.editTextWiscId);
-        buttonLogin = (Button) findViewById(R.id.buttonLogin);
+        setupUIViews();
 
         buttonLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -38,17 +45,34 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    private void toolbarSetup() {
+        Toolbar toolbar = findViewById(R.id.login_toolbar);
+        setSupportActionBar(toolbar);
+    }
+
+    private void setupUIViews() {
+        editTextWiscId = findViewById(R.id.editTextWiscId);
+        buttonLogin = findViewById(R.id.buttonLogin);
+    }
+
     private void verifyFromSQLite() {
         String wiscId = editTextWiscId.getText().toString().trim();
 
         if (databaseHelper.checkUser(wiscId)) {
-            Intent accountsIntent = new Intent(LoginActivity.this, MainActivity.class);
-            accountsIntent.putExtra("WISC_ID", wiscId);
-            emptyInputEditText();
-            startActivity(accountsIntent);
+            onSuccessfulLogin(wiscId);
         } else {
             showAlertDialog(wiscId);
         }
+    }
+
+    public void onSuccessfulLogin(String wiscId) {
+        SharedPreferences sharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean("isLoggedIn", true);
+        editor.putString("WISC_ID", wiscId);
+        editor.apply();
+
+        navigateToMainActivity();
     }
 
     private void showAlertDialog(final String wiscId) {
@@ -72,7 +96,15 @@ public class LoginActivity extends AppCompatActivity {
     private void createUser(String wiscId) {
         databaseHelper.addUser(wiscId);
         // Optionally, proceed to the main activity or stay on the login page
+        // For example, you could call onSuccessfulLogin(wiscId) here to auto-login
     }
+
+    private void navigateToMainActivity() {
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
     private void emptyInputEditText() {
         editTextWiscId.setText(null);
     }

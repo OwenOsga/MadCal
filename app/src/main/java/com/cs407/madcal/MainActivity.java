@@ -7,6 +7,7 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -15,14 +16,22 @@ import android.widget.Toast;
 public class MainActivity extends AppCompatActivity {
 
     private ViewPager2 viewPager;
-    private String wiscId; // Variable to hold the WISC ID
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Check if user is logged in
+        SharedPreferences sharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+        boolean isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
+        if (!isLoggedIn) {
+            navigateToLogin();
+            return;
+        }
+
         setContentView(R.layout.activity_main);
 
-        wiscId = getIntent().getStringExtra("WISC_ID"); // Retrieve the WISC ID
+        String wiscId = sharedPreferences.getString("WISC_ID", ""); // Retrieve the WISC ID from SharedPreferences
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -50,11 +59,11 @@ public class MainActivity extends AppCompatActivity {
                     break;
             }
         }).attach();
+
         // Disable swipe for the map tab
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
-                super.onPageSelected(position);
                 if (position == 2) { // Assuming the map is at position 2
                     viewPager.setUserInputEnabled(false);
                 } else {
@@ -66,9 +75,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu to use in the action bar
         getMenuInflater().inflate(R.menu.menu_navigation, menu);
-        return super.onCreateOptionsMenu(menu);
+        return true;
     }
 
     @Override
@@ -79,7 +87,6 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, ":)", Toast.LENGTH_SHORT).show();
             return true;
         } else if (itemId == R.id.action_logout) {
-            // Handle logout
             logout();
             return true;
         }
@@ -88,14 +95,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void logout() {
-        // Implement your logout logic here
-        // For example, clear any saved user data or preferences
+        SharedPreferences.Editor editor = getSharedPreferences("AppPrefs", MODE_PRIVATE).edit();
+        editor.clear();
+        editor.apply();
+        navigateToLogin();
+    }
 
-        // Navigate back to the LoginActivity
+    private void navigateToLogin() {
         Intent intent = new Intent(this, LoginActivity.class);
         startActivity(intent);
-
-        // Close MainActivity
         finish();
     }
 }
