@@ -81,6 +81,7 @@ public class LoginActivity extends AppCompatActivity {
                 .setCancelable(false)
                 .setPositiveButton("Create", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
+
                         createUser(wiscId);
                     }
                 })
@@ -97,6 +98,7 @@ public class LoginActivity extends AppCompatActivity {
         databaseHelper.addUser(wiscId);
         // Optionally, proceed to the main activity or stay on the login page
         // For example, you could call onSuccessfulLogin(wiscId) here to auto-login
+        onSuccessfulLogin(wiscId);
     }
 
     private void navigateToMainActivity() {

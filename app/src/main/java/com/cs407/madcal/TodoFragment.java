@@ -1,9 +1,14 @@
 package com.cs407.madcal;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -11,53 +16,149 @@ import android.widget.ListView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentResultListener;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.viewpager.widget.ViewPager;
+import androidx.viewpager2.widget.ViewPager2;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class TodoFragment extends Fragment {
 
     private EditText taskEditText;
-    private ListView taskListView;
+    private ListView listView;
     private Button addTaskButton;
 
     private ArrayList<String> taskList;
     private ArrayAdapter<String> taskAdapter;
     private String wiscId; // Variable to store WISC ID
+    private View view;
+    ArrayAdapter<String> adapter;
+    DatabaseHelper db;
+    ArrayList<Integer> taskIdList;
+    ArrayList<String> taskDescriptions;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_todo, container, false);
+        view = inflater.inflate(R.layout.fragment_todo, container, false);
 
         // Retrieve the WISC ID from the fragment's arguments
         if (getArguments() != null) {
             wiscId = getArguments().getString("WISC_ID");
         }
 
-        taskEditText = root.findViewById(R.id.taskEditText);
-        taskListView = root.findViewById(R.id.taskListView);
-        addTaskButton = root.findViewById(R.id.addTaskButton);
+        db = new DatabaseHelper(getActivity());
+        createTaskList(view);
 
-        // Initialize the task list and adapter
-        // Here, consider loading existing tasks associated with the wiscId
-        taskList = new ArrayList<>();
-        taskAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, taskList);
-        taskListView.setAdapter(taskAdapter);
+        Button addTaskButton = view.findViewById(R.id.add_task_button);
+        addTaskButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Fragment newTaskFragment = new NewTaskFragment();
+                Bundle bundle = new Bundle();
+                bundle.putString("WISC_ID", wiscId);
+                newTaskFragment.setArguments(bundle);
+                getActivity().getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, newTaskFragment)
+                        .addToBackStack(null)
+                        .commit();
+            }
+        });
 
-        // Set up the click listener for the "Add Task" button
-        addTaskButton.setOnClickListener(v -> addTask());
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                int taskId = (int)taskIdList.get(position);
 
-        return root;
+                //  Start of Dialog Code
+                new AlertDialog.Builder(getActivity())
+                        .setMessage("Would you like to edit or delete this assignment?")
+                        .setPositiveButton("DELETE", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                new AlertDialog.Builder(getActivity())
+                                        .setMessage("Are you sure you want to delete?")
+                                        .setPositiveButton("DELETE", new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                db.deleteTask(taskId);
+                                                createTaskList(getView());
+                                            }
+                                        })
+                                        .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                dialog.dismiss();
+                                            }
+                                        }).show();
+                            }
+                        })
+                        .setNeutralButton("DO NOTHING", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .setNegativeButton("EDIT", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                int taskId = (int)taskIdList.get(position);
+
+                                Fragment editTaskFragment = new EditTaskFragment();
+                                Bundle bundle = new Bundle();
+                                bundle.putString("WISC_ID", wiscId);
+                                bundle.putInt("TASK_ID", taskId);
+                                editTaskFragment.setArguments(bundle);;
+
+                                getActivity().getSupportFragmentManager().beginTransaction()
+                                        .replace(R.id.fragment_container, editTaskFragment)
+                                        .addToBackStack(null)
+                                        .commit();
+                            }
+                        }).show();
+                //  End of Dialog Code
+
+            }
+        });
+        getParentFragmentManager().setFragmentResultListener("task_update_key", this, new FragmentResultListener() {
+            @Override
+            public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle result) {
+                Log.e("FRAG UPDATE", "UPDATED!");
+                if (result.getBoolean("updated")) {
+                    Log.e("FRAG UPDATE", "REFRESH NOW!");
+                    createTaskList(getView());
+                }
+            }
+        });
+
+        getParentFragmentManager().setFragmentResultListener("task_add_key", this, new FragmentResultListener() {
+            @Override
+            public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle result) {
+                if (result.getBoolean("added")) {
+                    createTaskList(getView());
+                }
+            }
+        });
+
+        return view;
+    }
+    @Override
+    public void onResume() {
+        super.onResume();
+        createTaskList(view);
     }
 
-    // Method to add a task to the list
-    private void addTask() {
-        String task = taskEditText.getText().toString().trim();
-        if (!task.isEmpty()) {
-            taskList.add(task);
-            taskAdapter.notifyDataSetChanged(); // Notify the adapter that the dataset has changed
-            taskEditText.getText().clear(); // Clear the input field
+    private void createTaskList(View view) {
+        listView = view.findViewById(R.id.list_item);
+        List<String[]> tasks = db.getTasksByWiscId(wiscId);
 
-            // Here, consider saving the task associated with the wiscId
+        taskDescriptions = new ArrayList<>();
+        taskIdList = new ArrayList<>();
+
+        for (String[] task : tasks) {
+            taskDescriptions.add(task[0]);
+            taskIdList.add(Integer.parseInt(task[1]));
         }
+
+        adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, taskDescriptions);
+        listView.setAdapter(adapter);
+        adapter.notifyDataSetChanged();
     }
 }

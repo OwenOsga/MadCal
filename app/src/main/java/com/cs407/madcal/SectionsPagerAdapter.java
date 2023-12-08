@@ -34,7 +34,7 @@ public class SectionsPagerAdapter extends FragmentStateAdapter {
                 fragment = new ScheduleFragment();
                 break;
             default:
-                fragment = new CalendarFragment();
+                fragment = new TodoFragment();
                 break;
         }
 

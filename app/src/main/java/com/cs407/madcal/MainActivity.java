@@ -2,6 +2,9 @@ package com.cs407.madcal;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
@@ -64,6 +67,9 @@ public class MainActivity extends AppCompatActivity {
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
+                if (position != 1) {
+                    hideToDoTabFragment();
+                }
                 if (position == 2) { // Assuming the map is at position 2
                     viewPager.setUserInputEnabled(false);
                 } else {
@@ -73,6 +79,13 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void hideToDoTabFragment() {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        Fragment emptyFragment = new Fragment();
+        fragmentTransaction.replace(R.id.fragment_container, emptyFragment);
+        fragmentTransaction.commit();
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_navigation, menu);
