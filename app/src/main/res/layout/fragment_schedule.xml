@@ -7,6 +7,7 @@
     tools:context=".ScheduleFragment">
 
     <ListView
+        android:id="@+id/class_listview"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="7dp"
@@ -15,10 +16,10 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView11" />
+        app:layout_constraintTop_toBottomOf="@+id/schedule_text" />
 
     <TextView
-        android:id="@+id/textView11"
+        android:id="@+id/schedule_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
@@ -31,14 +32,25 @@
 
     <Button
         android:id="@+id/schedule_button"
-        android:layout_width="318dp"
+        android:layout_width="168dp"
         android:layout_height="45dp"
-        android:layout_marginStart="28dp"
+        android:layout_marginStart="188dp"
         android:layout_marginTop="17dp"
-        android:layout_marginEnd="28dp"
-        android:text="Add/Remove Class"
-        app:layout_constraintBottom_toTopOf="@+id/textView11"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:text="Add Class"
+        app:layout_constraintBottom_toTopOf="@+id/schedule_text"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/edit_class_button"
+        android:layout_width="168dp"
+        android:layout_height="45dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="17dp"
+        android:text="Edit/Remove Class"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toTopOf="@+id/schedule_text"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0" />
 </androidx.constraintlayout.widget.ConstraintLayout>

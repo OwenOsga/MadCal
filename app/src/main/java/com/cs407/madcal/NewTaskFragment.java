@@ -82,6 +82,15 @@ public class NewTaskFragment extends Fragment {
                         meridiem = "AM";
                     } else if (selectedId == R.id.pm_dot) {
                         meridiem = "PM";
+                    } else {
+                        new AlertDialog.Builder(getActivity())
+                                .setMessage("You must select either AM or PM.")
+                                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.dismiss();
+                                    }
+                                }).show();
+                        return;
                     }
 
                     if (Integer.valueOf(month) < 10 && month.length() == 1) {
@@ -133,7 +142,7 @@ public class NewTaskFragment extends Fragment {
                         //  End of Dialog Code
                     } else {
                         // Construct date and time strings
-                        String taskDate = month + "/" + day + "/" + year;
+                        String taskDate = year + "-" + month + "-" + day;
                         String taskTime = hour + ":" + minute + " " + meridiem;
 
                         // Use DatabaseHelper to insert the task
@@ -176,9 +185,9 @@ public class NewTaskFragment extends Fragment {
         String[] taskDetails = db.getTaskById(taskId);
 
         String old_task = taskDetails[0];
-        String old_month = taskDetails[1].split("/")[0];
-        String old_day = taskDetails[1].split("/")[1];
-        String old_year = taskDetails[1].split("/")[2];
+        String old_month = taskDetails[1].split("-")[1];
+        String old_day = taskDetails[1].split("-")[2];
+        String old_year = taskDetails[1].split("-")[0];
         String old_hour = taskDetails[2].split(" ")[0].split(":")[0];
         String old_minute = taskDetails[2].split(" ")[0].split(":")[1];
         String old_meridiem = taskDetails[2].split(" ")[1];
