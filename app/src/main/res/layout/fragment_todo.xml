@@ -9,11 +9,15 @@
 
     <Button
         android:id="@+id/add_task_button"
-        android:layout_width="286dp"
-        android:layout_height="47dp"
-        android:layout_marginStart="48dp"
+        android:layout_width="316dp"
+        android:layout_height="49dp"
+        android:layout_marginStart="38dp"
         android:layout_marginTop="16dp"
+        android:layout_marginEnd="38dp"
+        android:layout_marginBottom="10dp"
         android:text="Add A New Task/Assignment"
+        app:layout_constraintBottom_toTopOf="@+id/todays_date"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -21,12 +25,25 @@
         android:id="@+id/list_item"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="23dp"
-        android:layout_marginEnd="23dp"
-        android:layout_marginBottom="52dp"
+        android:layout_marginStart="5dp"
+        android:layout_marginEnd="5dp"
+        android:layout_marginBottom="37dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/todays_date" />
+
+    <TextView
+        android:id="@+id/todays_date"
+        android:layout_width="304dp"
+        android:layout_height="39dp"
+        android:layout_marginStart="42dp"
+        android:layout_marginEnd="42dp"
+        android:layout_marginBottom="25dp"
+        android:text=""
+        android:textSize="15sp"
+        app:layout_constraintBottom_toTopOf="@+id/list_item"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/add_task_button" />
 </androidx.constraintlayout.widget.ConstraintLayout>

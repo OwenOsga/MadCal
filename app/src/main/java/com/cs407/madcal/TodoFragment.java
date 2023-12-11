@@ -13,6 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -22,8 +23,11 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager.widget.ViewPager;
 import androidx.viewpager2.widget.ViewPager2;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class TodoFragment extends Fragment {
 
@@ -48,6 +52,10 @@ public class TodoFragment extends Fragment {
         if (getArguments() != null) {
             wiscId = getArguments().getString("WISC_ID");
         }
+
+        TextView todaysDateTextView = view.findViewById(R.id.todays_date);
+        String currentDate = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(new Date());
+        todaysDateTextView.setText("Today's Date: " + currentDate + "\nYour tasks:");
 
         db = new DatabaseHelper(getActivity());
         createTaskList(view);

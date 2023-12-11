@@ -12,7 +12,7 @@ import java.util.List;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Database Version
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 5;
 
     // Database Name
     private static final String DATABASE_NAME = "UserManager.db";
@@ -105,7 +105,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         List<String[]> taskList = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
 
-        String selectQuery = "SELECT * FROM " + TABLE_TASKS + " WHERE " + COLUMN_TASK_WISC_ID + " = ?";
+        String selectQuery = "SELECT * FROM " + TABLE_TASKS + " WHERE " + COLUMN_TASK_WISC_ID + " = ? ORDER BY " + COLUMN_TASK_DATE + " ASC, " + COLUMN_TASK_TIME + " ASC";
         Cursor cursor = db.rawQuery(selectQuery, new String[] { wiscId });
 
         if (cursor.moveToFirst()) {

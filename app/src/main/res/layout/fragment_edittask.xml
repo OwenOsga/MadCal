@@ -249,7 +249,7 @@
             android:layout_marginBottom="26dp"
             android:ems="10"
             android:inputType="number"
-            app:layout_constraintBottom_toTopOf="@+id/save_button"
+            app:layout_constraintBottom_toTopOf="@+id/new_save_button"
             app:layout_constraintEnd_toStartOf="@+id/textView8"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@+id/textView9" />

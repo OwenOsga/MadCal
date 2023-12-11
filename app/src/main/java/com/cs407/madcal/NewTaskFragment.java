@@ -103,7 +103,7 @@ public class NewTaskFragment extends Fragment {
                                 }).show();
                         //  End of Dialog Code
                     } else if ((Integer.valueOf(hour) < 1 || Integer.valueOf(hour) > 12)
-                            || (Integer.valueOf(minute) < 1 || Integer.valueOf(minute) > 59)) {
+                            || (Integer.valueOf(minute) < 0 || Integer.valueOf(minute) > 59)) {
                         //  Start of Dialog Code
                         new AlertDialog.Builder(getActivity())
                                 .setMessage("You've entered an invalid (AM/PM) time. Try again.")
