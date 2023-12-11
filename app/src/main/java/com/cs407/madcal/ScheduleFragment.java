@@ -1,9 +1,11 @@
 package com.cs407.madcal;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
@@ -21,13 +23,20 @@ public class ScheduleFragment extends Fragment {
             wiscId = getArguments().getString("WISC_ID");
         }
 
-        // Use the WISC ID to display or manage the user-specific schedule
-        // For now, it shows a placeholder schedule.
-        // This is where you will integrate your logic to fetch and display the actual schedule
-        // related to the WISC ID.
-        ((TextView)view.findViewById(R.id.monday_content)).setText("MATH 150 -- 1:30-3:15 PM -- Birge Hall");
-        ((TextView)view.findViewById(R.id.wednesday_content)).setText("MATH 150 -- 1:30-3:15 PM -- Birge Hall");
-        ((TextView)view.findViewById(R.id.friday_content)).setText("MATH 150 -- 1:30-3:15 PM -- Birge Hall");
+        Button scheduleButton = view.findViewById(R.id.schedule_button);
+        scheduleButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Fragment newClassFragment = new NewClassFragment();
+                Bundle bundle = new Bundle();
+                bundle.putString("WISC_ID", wiscId);
+                newClassFragment.setArguments(bundle);
+                getActivity().getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, newClassFragment)
+                        .addToBackStack(null)
+                        .commit();
+            }
+        });
 
         return view;
     }

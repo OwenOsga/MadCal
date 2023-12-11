@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/white"
+        app:layout_constraintEnd_toEndOf="@+id/textView12"
+        app:layout_constraintStart_toEndOf="@+id/textView12">
+
+        <EditText
+            android:id="@+id/monday_from_hour"
+            android:layout_width="66dp"
+            android:layout_height="47dp"
+            android:ems="10"
+            android:inputType="number"
+            tools:layout_editor_absoluteX="26dp"
+            tools:layout_editor_absoluteY="234dp" />
+
+        <EditText
+            android:id="@+id/from_minute2"
+            android:layout_width="66dp"
+            android:layout_height="47dp"
+            android:ems="10"
+            android:inputType="number"
+            tools:layout_editor_absoluteX="105dp"
+            tools:layout_editor_absoluteY="234dp" />
+
+        <RadioGroup
+            android:id="@+id/from_group"
+            android:layout_width="157dp"
+            android:layout_height="47dp"
+            android:orientation="horizontal"
+            tools:layout_editor_absoluteX="171dp"
+            tools:layout_editor_absoluteY="234dp">
+
+
+            <RadioButton
+                android:id="@+id/from_am_dot"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_weight="1"
+                android:text="AM" />
+
+            <RadioButton
+                android:id="@+id/from_pm_dot"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_weight="1"
+                android:text="PM" />
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/textView13"
+            android:layout_width="13dp"
+            android:layout_height="47dp"
+            android:text=":"
+            android:textSize="30sp"
+            tools:layout_editor_absoluteX="92dp"
+            tools:layout_editor_absoluteY="234dp" />
+
+        <RadioButton
+            android:id="@+id/monday_dot"
+            android:layout_width="363dp"
+            android:layout_height="47dp"
+            android:text="Monday"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/daystext"
+            tools:layout_editor_absoluteX="25dp"
+            tools:layout_editor_absoluteY="182dp" />
+
+        <TextView
+            android:id="@+id/daystext"
+            android:layout_width="363dp"
+            android:layout_height="47dp"
+            android:text="Days:"
+            android:textSize="18sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:layout_editor_absoluteY="135dp" />
+
+        <RadioButton
+            android:id="@+id/tuesday_dot"
+            android:layout_width="366dp"
+            android:layout_height="47dp"
+            android:text="Tuesday"
+            tools:layout_editor_absoluteX="22dp"
+            tools:layout_editor_absoluteY="292dp" />
+
+        <RadioButton
+            android:id="@+id/wednesday_dot"
+            android:layout_width="366dp"
+            android:layout_height="47dp"
+            android:text="Wednesday"
+            tools:layout_editor_absoluteX="21dp"
+            tools:layout_editor_absoluteY="337dp" />
+
+        <RadioButton
+            android:id="@+id/thursday_dot"
+            android:layout_width="366dp"
+            android:layout_height="47dp"
+            android:text="Thursday"
+            tools:layout_editor_absoluteX="21dp"
+            tools:layout_editor_absoluteY="385dp" />
+
+        <Button
+            android:id="@+id/continue_button"
+            android:layout_width="193dp"
+            android:layout_height="48dp"
+            android:text="Continue"
+            tools:layout_editor_absoluteX="107dp"
+            tools:layout_editor_absoluteY="577dp" />
+
+        <RadioButton
+            android:id="@+id/sunday_dot"
+            android:layout_width="366dp"
+            android:layout_height="47dp"
+            android:text="Sunday"
+            tools:layout_editor_absoluteX="21dp"
+            tools:layout_editor_absoluteY="524dp" />
+
+        <RadioButton
+            android:id="@+id/saturday_dot"
+            android:layout_width="366dp"
+            android:layout_height="47dp"
+            android:text="Saturday"
+            tools:layout_editor_absoluteX="21dp"
+            tools:layout_editor_absoluteY="476dp" />
+
+        <RadioButton
+            android:id="@+id/friday_dot"
+            android:layout_width="366dp"
+            android:layout_height="47dp"
+            android:text="Friday"
+            tools:layout_editor_absoluteX="21dp"
+            tools:layout_editor_absoluteY="433dp" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

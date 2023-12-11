@@ -6,71 +6,39 @@
     android:layout_height="match_parent"
     tools:context=".ScheduleFragment">
 
-    <TextView
-        android:id="@+id/wednesday_content"
+    <ListView
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginBottom="18dp"
-        android:text="  "
-        app:layout_constraintBottom_toTopOf="@+id/friday_name"
-        app:layout_constraintEnd_toEndOf="@+id/friday_content"
-        app:layout_constraintStart_toStartOf="@+id/wednesday_name"
-        app:layout_constraintTop_toBottomOf="@+id/wednesday_name" />
-
-    <TextView
-        android:id="@+id/friday_content"
-        android:layout_width="276dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginBottom="62dp"
-        android:text="  "
+        android:layout_marginStart="7dp"
+        android:layout_marginEnd="7dp"
+        android:layout_marginBottom="1dp"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/friday_name" />
+        app:layout_constraintTop_toBottomOf="@+id/textView11" />
 
     <TextView
-        android:id="@+id/wednesday_name"
+        android:id="@+id/textView11"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginBottom="12dp"
-        android:text="Wednesday:"
-        app:layout_constraintBottom_toTopOf="@+id/wednesday_content"
+        android:layout_marginBottom="8dp"
+        android:text="Your Schedule:"
+        android:textSize="21sp"
+        app:layout_constraintBottom_toTopOf="@+id/schedule_button"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/monday_content" />
+        app:layout_constraintTop_toBottomOf="@+id/schedule_button" />
 
-    <TextView
-        android:id="@+id/monday_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="116dp"
-        android:layout_marginBottom="14dp"
-        android:text="Monday:"
-        app:layout_constraintBottom_toTopOf="@+id/monday_content"
+    <Button
+        android:id="@+id/schedule_button"
+        android:layout_width="318dp"
+        android:layout_height="45dp"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="17dp"
+        android:layout_marginEnd="28dp"
+        android:text="Add/Remove Class"
+        app:layout_constraintBottom_toTopOf="@+id/textView11"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/friday_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginBottom="20dp"
-        android:text="Friday:"
-        app:layout_constraintBottom_toTopOf="@+id/friday_content"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/wednesday_content" />
-
-    <TextView
-        android:id="@+id/monday_content"
-        android:layout_width="276dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="13dp"
-        android:layout_marginBottom="30dp"
-        android:text="  "
-        app:layout_constraintBottom_toTopOf="@+id/wednesday_name"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/monday_name" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -55,7 +55,7 @@ public class TodoFragment extends Fragment {
 
         TextView todaysDateTextView = view.findViewById(R.id.todays_date);
         String currentDate = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(new Date());
-        todaysDateTextView.setText("Today's Date: " + currentDate + "\nYour tasks:");
+        todaysDateTextView.setText("Today's Date: " + currentDate);
 
         db = new DatabaseHelper(getActivity());
         createTaskList(view);
@@ -109,7 +109,7 @@ public class TodoFragment extends Fragment {
                             public void onClick(DialogInterface dialog, int id) {
                                 int taskId = (int)taskIdList.get(position);
 
-                                Fragment editTaskFragment = new EditTaskFragment();
+                                Fragment editTaskFragment = new NewTaskFragment();
                                 Bundle bundle = new Bundle();
                                 bundle.putString("WISC_ID", wiscId);
                                 bundle.putInt("TASK_ID", taskId);
@@ -123,16 +123,6 @@ public class TodoFragment extends Fragment {
                         }).show();
                 //  End of Dialog Code
 
-            }
-        });
-        getParentFragmentManager().setFragmentResultListener("task_update_key", this, new FragmentResultListener() {
-            @Override
-            public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle result) {
-                Log.e("FRAG UPDATE", "UPDATED!");
-                if (result.getBoolean("updated")) {
-                    Log.e("FRAG UPDATE", "REFRESH NOW!");
-                    createTaskList(getView());
-                }
             }
         });
 

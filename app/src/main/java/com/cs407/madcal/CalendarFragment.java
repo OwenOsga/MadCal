@@ -38,8 +38,8 @@ public class CalendarFragment extends Fragment {
     ArrayAdapter<String> adapter;
     ArrayList<Calendar> highlightedDates;
 
-    final String defaultGreeting = "Select one of the highlighted dates in order to see the tasks that are due on that day. " +
-            "\n\nIf there are no highlighted days, add some tasks.";
+    final String defaultGreeting = "Select one of the highlighted dates in order to see the tasks that are due on that day." +
+            "\n\nIf there are none, add some tasks.";
 
     private String parseDate(String[] task) {
         String[] dateParts = task[0].split("Due on: ")[1].split(",")[0].trim().split(" ")[0].split("/");

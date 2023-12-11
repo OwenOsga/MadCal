@@ -17,6 +17,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -30,7 +31,10 @@ public class NewTaskFragment extends Fragment {
 
     private ArrayList<String> taskList;
     private ArrayAdapter<String> taskAdapter;
+    View view;
     private String wiscId; // Variable to store WISC ID
+    private int taskId;
+    private boolean updating;
 
     public static boolean isValidDate(String dateString, String format) {
         try {
@@ -44,12 +48,17 @@ public class NewTaskFragment extends Fragment {
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_newtask, container, false);
+        view = inflater.inflate(R.layout.fragment_newtask, container, false);
+        updating = false;
 
         // Retrieve the WISC ID from the fragment's arguments
         if (getArguments() != null) {
             wiscId = getArguments().getString("WISC_ID");
+            taskId = getArguments().getInt("TASK_ID");
+        }
+        if (taskId != 0) {
+            updating = true;
+            populateEntries();
         }
 
         Button saveTaskButton = view.findViewById(R.id.save_button);
@@ -74,7 +83,6 @@ public class NewTaskFragment extends Fragment {
                     } else if (selectedId == R.id.pm_dot) {
                         meridiem = "PM";
                     }
-                    String msg = "You have added the task, which is due on " + month + "/" + day + "/" + year + ", at " + hour + ":" + minute + " " + meridiem + ".";
 
                     if (Integer.valueOf(month) < 10 && month.length() == 1) {
                         month = "0" + month;
@@ -130,8 +138,11 @@ public class NewTaskFragment extends Fragment {
 
                         // Use DatabaseHelper to insert the task
                         DatabaseHelper db = new DatabaseHelper(getActivity());
-                        db.addTask(task, taskDate, taskTime, wiscId);
-
+                        if (updating) {
+                            db.updateTask(taskId, task, taskDate, taskTime);
+                        } else {
+                            db.addTask(task, taskDate, taskTime, wiscId);
+                        }
 
                         // After successful add
                         Bundle result = new Bundle();
@@ -157,4 +168,33 @@ public class NewTaskFragment extends Fragment {
 
         return view;
     }
+
+    private void populateEntries() {
+        ((TextView)view.findViewById(R.id.tasktext)).setText("Edit Task/Assignment:");
+
+        DatabaseHelper db = new DatabaseHelper(getActivity());
+        String[] taskDetails = db.getTaskById(taskId);
+
+        String old_task = taskDetails[0];
+        String old_month = taskDetails[1].split("/")[0];
+        String old_day = taskDetails[1].split("/")[1];
+        String old_year = taskDetails[1].split("/")[2];
+        String old_hour = taskDetails[2].split(" ")[0].split(":")[0];
+        String old_minute = taskDetails[2].split(" ")[0].split(":")[1];
+        String old_meridiem = taskDetails[2].split(" ")[1];
+
+        ((EditText)view.findViewById(R.id.the_task)).setText(old_task);
+        ((EditText)view.findViewById(R.id.the_month)).setText(old_month);
+        ((EditText)view.findViewById(R.id.the_day)).setText(old_day);
+        ((EditText)view.findViewById(R.id.the_year)).setText(old_year);
+        ((EditText)view.findViewById(R.id.the_hour)).setText(old_hour);
+        ((EditText)view.findViewById(R.id.the_minute)).setText(old_minute);
+
+        if (old_meridiem.equals("AM")) {
+            ((RadioButton)view.findViewById(R.id.am_dot)).setChecked(true);
+        } else if (old_meridiem.equals("PM")){
+            ((RadioButton)view.findViewById(R.id.pm_dot)).setChecked(true);
+        }
+    }
+
 }
