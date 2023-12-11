@@ -18,11 +18,12 @@ import java.util.Date;
 import java.util.List;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Database Version
-    private static final int DATABASE_VERSION = 7;
+    private static final int DATABASE_VERSION = 8;
 
     // Database Name
     private static final String DATABASE_NAME = "UserManager.db";
@@ -47,6 +48,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_CLASS_RANGE = "class_range";
     private static final String COLUMN_CLASS_WISC_ID = "wisc_id";
     private static final String COLUMN_CLASS_ID = "class_id";
+
+    // New table for map pins
+    private static final String TABLE_PINS = "map_pins";
+    private static final String COLUMN_PIN_ID = "pin_id";
+    private static final String COLUMN_PIN_LAT = "latitude";
+    private static final String COLUMN_PIN_LNG = "longitude";
+    private static final String COLUMN_PIN_CLASS_NAME = "class_name";
+    private static final String COLUMN_PIN_CLASS_DAYS = "class_days";
+    private static final String COLUMN_PIN_CLASS_ROOM = "class_room";
 
 
     // create table sql query
@@ -78,6 +88,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // SQL query to drop the classes table
     private static final String DROP_CLASSES_TABLE = "DROP TABLE IF EXISTS " + TABLE_CLASSES;
 
+    // SQL query to create the pins table
+    private static final String CREATE_PINS_TABLE = "CREATE TABLE " + TABLE_PINS + "("
+            + COLUMN_PIN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+            + COLUMN_PIN_LAT + " REAL,"
+            + COLUMN_PIN_LNG + " REAL,"
+            + COLUMN_PIN_CLASS_NAME + " TEXT,"
+            + COLUMN_PIN_CLASS_DAYS + " TEXT,"
+            + COLUMN_PIN_CLASS_ROOM + " TEXT,"
+            + COLUMN_USER_ID + " TEXT" + ")";
+
+    // SQL query to drop the pins table
+    private static final String DROP_PINS_TABLE = "DROP TABLE IF EXISTS " + TABLE_PINS;
+
     /**
      * Constructor
      *
@@ -92,6 +115,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_USER_TABLE);
         db.execSQL(CREATE_TASKS_TABLE);
         db.execSQL(CREATE_CLASSES_TABLE);
+        db.execSQL(CREATE_PINS_TABLE);
     }
 
     @Override
@@ -100,6 +124,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(DROP_USER_TABLE);
         db.execSQL(DROP_TASKS_TABLE);
         db.execSQL(DROP_CLASSES_TABLE);
+        db.execSQL(DROP_PINS_TABLE);
         onCreate(db);
     }
 
@@ -144,13 +169,30 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.insert(TABLE_CLASSES, null, values);
         db.close();
     }
+
+    public int addPin(double lat, double lng, String className, String classDays, String classRoom, String wiscId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_PIN_LAT, lat);
+        values.put(COLUMN_PIN_LNG, lng);
+        values.put(COLUMN_PIN_CLASS_NAME, className);
+        values.put(COLUMN_PIN_CLASS_DAYS, classDays);
+        values.put(COLUMN_PIN_CLASS_ROOM, classRoom);
+        values.put(COLUMN_USER_ID, wiscId);
+
+        long id = db.insert(TABLE_PINS, null, values);
+        db.close();
+        return (int) id;
+    }
     public List<String[]> getTasksByWiscId(String wiscId) {
-        List<String[]> taskList = new ArrayList<>();
+        List<TaskDetail> taskDetails = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
 
-        // Adjusted SQL query for ordering by date and time
-        String selectQuery = "SELECT * FROM " + TABLE_TASKS + " WHERE " + COLUMN_TASK_WISC_ID + " = ? ORDER BY " + COLUMN_TASK_DATE + " ASC, " + COLUMN_TASK_TIME + " ASC";
+        String selectQuery = "SELECT * FROM " + TABLE_TASKS + " WHERE " + COLUMN_TASK_WISC_ID + " = ?";
         Cursor cursor = db.rawQuery(selectQuery, new String[] { wiscId });
+
+        SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm a", Locale.getDefault());
 
         if (cursor.moveToFirst()) {
             do {
@@ -158,14 +200,46 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 String taskTitle = cursor.getString(cursor.getColumnIndex(COLUMN_TASK_TITLE));
                 String taskDate = cursor.getString(cursor.getColumnIndex(COLUMN_TASK_DATE));
                 String taskTime = cursor.getString(cursor.getColumnIndex(COLUMN_TASK_TIME));
-                taskList.add(new String[]{taskTitle + "\nDue on: " +
-                        LocalDate.parse(taskDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")).format(DateTimeFormatter.ofPattern("MM/dd/yyyy"))
-                        + " at " + taskTime, taskId});
+                Date dateTime = null;
+                try {
+                    dateTime = dateTimeFormat.parse(taskDate + " " + taskTime);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                taskDetails.add(new TaskDetail(taskTitle, dateTime, taskId));
             } while (cursor.moveToNext());
         }
         cursor.close();
         db.close();
-        return taskList;
+
+        Collections.sort(taskDetails, new Comparator<TaskDetail>() {
+            @Override
+            public int compare(TaskDetail t1, TaskDetail t2) {
+                return t1.dateTime.compareTo(t2.dateTime);
+            }
+        });
+
+        List<String[]> sortedTasks = new ArrayList<>();
+        SimpleDateFormat outputFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm a", Locale.getDefault());
+
+        for (TaskDetail task : taskDetails) {
+            String formattedDate = outputFormat.format(task.dateTime);
+            sortedTasks.add(new String[]{task.title + "\nDue on: " + formattedDate, task.id});
+        }
+
+        return sortedTasks;
+    }
+
+    private static class TaskDetail {
+        String title;
+        Date dateTime;
+        String id;
+
+        public TaskDetail(String title, Date dateTime, String id) {
+            this.title = title;
+            this.dateTime = dateTime;
+            this.id = id;
+        }
     }
 
     public List<String> getClassesByDay(String day, String wiscId) {
@@ -248,6 +322,51 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return classData;
     }
 
+    public List<PinData> getPinsByWiscId(String wiscId) {
+        List<PinData> pins = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(TABLE_PINS, new String[]{COLUMN_PIN_ID, COLUMN_PIN_LAT, COLUMN_PIN_LNG, COLUMN_PIN_CLASS_NAME, COLUMN_PIN_CLASS_DAYS, COLUMN_PIN_CLASS_ROOM},
+                COLUMN_USER_ID + "=?", new String[]{wiscId}, null, null, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                int id = cursor.getInt(cursor.getColumnIndex(COLUMN_PIN_ID));
+                double lat = cursor.getDouble(cursor.getColumnIndex(COLUMN_PIN_LAT));
+                double lng = cursor.getDouble(cursor.getColumnIndex(COLUMN_PIN_LNG));
+                String className = cursor.getString(cursor.getColumnIndex(COLUMN_PIN_CLASS_NAME));
+                String classDays = cursor.getString(cursor.getColumnIndex(COLUMN_PIN_CLASS_DAYS));
+                String classRoom = cursor.getString(cursor.getColumnIndex(COLUMN_PIN_CLASS_ROOM));
+
+                pins.add(new PinData(lat, lng, className, classDays, classRoom, id));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+        return pins;
+    }
+
+    public PinData getPinById(int pinId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_PINS, new String[]{COLUMN_PIN_ID, COLUMN_PIN_LAT, COLUMN_PIN_LNG, COLUMN_PIN_CLASS_NAME, COLUMN_PIN_CLASS_DAYS, COLUMN_PIN_CLASS_ROOM},
+                COLUMN_PIN_ID + "=?", new String[]{String.valueOf(pinId)}, null, null, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            double lat = cursor.getDouble(cursor.getColumnIndex(COLUMN_PIN_LAT));
+            double lng = cursor.getDouble(cursor.getColumnIndex(COLUMN_PIN_LNG));
+            String className = cursor.getString(cursor.getColumnIndex(COLUMN_PIN_CLASS_NAME));
+            String classDays = cursor.getString(cursor.getColumnIndex(COLUMN_PIN_CLASS_DAYS));
+            String classRoom = cursor.getString(cursor.getColumnIndex(COLUMN_PIN_CLASS_ROOM));
+
+            cursor.close();
+            db.close();
+            return new PinData(lat, lng, className, classDays, classRoom, pinId);
+        } else {
+            db.close();
+            return null;
+        }
+    }
+
     public String[] getTaskById(int taskId) {
         SQLiteDatabase db = this.getReadableDatabase();
         String[] taskDetails = new String[4];
@@ -271,6 +390,29 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return taskDetails;
     }
+
+    public String[] getClassById(int classId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] classDetails = new String[3]; // [class_name, class_days, class_range]
+
+        Cursor cursor = db.query(TABLE_CLASSES, new String[] {COLUMN_CLASS_NAME, COLUMN_CLASS_DAYS, COLUMN_CLASS_RANGE},
+                COLUMN_CLASS_ID + "=?", new String[]{String.valueOf(classId)}, null, null, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            String className = cursor.getString(cursor.getColumnIndex(COLUMN_CLASS_NAME));
+            String classDays = cursor.getString(cursor.getColumnIndex(COLUMN_CLASS_DAYS));
+            String classRange = cursor.getString(cursor.getColumnIndex(COLUMN_CLASS_RANGE));
+
+            classDetails[0] = className;
+            classDetails[1] = classDays;
+            classDetails[2] = classRange;
+
+            cursor.close();
+        }
+
+        db.close();
+        return classDetails;
+    }
     public void updateTask(int taskId, String title, String date, String time) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -282,6 +424,31 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
     }
 
+    public void updateClass(int classId, String className, String classDays, String classRange, String wiscId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_CLASS_NAME, className);
+        values.put(COLUMN_CLASS_DAYS, classDays);
+        values.put(COLUMN_CLASS_RANGE, classRange);
+        values.put(COLUMN_CLASS_WISC_ID, wiscId);
+
+        db.update(TABLE_CLASSES, values, COLUMN_CLASS_ID + " = ?", new String[]{String.valueOf(classId)});
+        db.close();
+    }
+
+    public void updatePin(int pinId, double lat, double lng, String className, String classDays, String classRoom) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_PIN_LAT, lat);
+        values.put(COLUMN_PIN_LNG, lng);
+        values.put(COLUMN_PIN_CLASS_NAME, className);
+        values.put(COLUMN_PIN_CLASS_DAYS, classDays);
+        values.put(COLUMN_PIN_CLASS_ROOM, classRoom);
+
+        db.update(TABLE_PINS, values, COLUMN_PIN_ID + " = ?", new String[]{String.valueOf(pinId)});
+        db.close();
+    }
 
     /**
      * This method is to check user exist or not
@@ -340,5 +507,27 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
     }
 
+    public void deletePin(int pinId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_PINS, COLUMN_PIN_ID + " = ?", new String[]{String.valueOf(pinId)});
+        db.close();
+    }
 
+    public static class PinData {
+        public double latitude;
+        public double longitude;
+        public String className;
+        public String classDays;
+        public String classRoom;
+        public int id;
+
+        public PinData(double latitude, double longitude, String className, String classDays, String classRoom, int id) {
+            this.latitude = latitude;
+            this.longitude = longitude;
+            this.className = className;
+            this.classDays = classDays;
+            this.classRoom = classRoom;
+            this.id = id;
+        }
+    }
 }

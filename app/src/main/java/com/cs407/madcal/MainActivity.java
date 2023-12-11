@@ -9,6 +9,8 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -112,7 +114,20 @@ public class MainActivity extends AppCompatActivity {
         int itemId = item.getItemId();
 
         if (itemId == R.id.help_menu) {
-            Toast.makeText(this, ":)", Toast.LENGTH_SHORT).show();
+            String help_message = "For the Calendar, select a day that is highlighted with a red arrow in order to see the tasks that are due that day.\n\n";
+            help_message += "For the To Do list, add, edit, or delete tasks/assignments as you see fit.\n\n";
+            help_message += "For the UW Map, search for a building. When you select a building, you can create a pin that assigns the building to a specific class. " +
+                    "When you click on the pin, you get the information on which class is running within the building.\n\n";
+            help_message += "For the Schedule, add, edit, or delete classes as you see fit.";
+
+            new AlertDialog.Builder(MainActivity.this)
+                    .setMessage(help_message)
+                    .setPositiveButton("DISMISS", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .show();
             return true;
         } else if (itemId == R.id.action_logout) {
             logout();

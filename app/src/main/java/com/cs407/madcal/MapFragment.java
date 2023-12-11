@@ -25,6 +25,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.libraries.places.api.Places;
@@ -33,74 +34,136 @@ import com.google.android.libraries.places.api.model.TypeFilter;
 import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
+import com.google.android.gms.maps.model.Marker;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.widget.EditText;
+
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+import java.util.function.Consumer;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     private GoogleMap mMap;
     private PlacesClient placesClient;
+    private String wiscId;
     private static final String TAG = "MapFragment";
+    private DatabaseHelper db;
+    Random random;
+
+    private List<Marker> markerList;
+    private List<Integer> pinIdList;
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+
         View view = inflater.inflate(R.layout.fragment_map, container, false);
 
-        // Initialize the Places SDK
+        // Retrieve the WISC ID from the fragment's arguments
+        if (getArguments() != null) {
+            wiscId = getArguments().getString("WISC_ID");
+        }
+
+        db = new DatabaseHelper(getContext());
+        markerList = new ArrayList<>();
+        pinIdList = new ArrayList<>();
+        random = new Random();
+
         if (!Places.isInitialized()) {
             Places.initialize(requireContext(), "AIzaSyDlyJg8OpAM2n5HLmuxH4pOfH_LUpMXbmc");
         }
         placesClient = Places.createClient(getContext());
 
-        // Initialize the AutocompleteSupportFragment
-        AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
-                getChildFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+        AutocompleteSupportFragment autocompleteFragment = (((AutocompleteSupportFragment) getChildFragmentManager()
+                .findFragmentById(R.id.autocomplete_fragment))
+                .setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.ADDRESS, Place.Field.LAT_LNG)));
 
-        // Specify the types of place data to return
-        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG));
-        autocompleteFragment.setTypeFilter(TypeFilter.ADDRESS);
-
-        // Set up a PlaceSelectionListener to handle the response
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(@NonNull Place place) {
-                // Move the camera to the selected place
                 LatLng location = place.getLatLng();
                 if (location != null) {
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 15));
-
-                    // Add a marker and set the title as the place name
-                    mMap.addMarker(new MarkerOptions()
-                            .position(location)
-                            .title(place.getName())
-                            .snippet(place.getAddress())); // Optional: You can also show the address as a snippet
-
-                    // Optional: If you want to show an info window immediately
-                    mMap.setOnMarkerClickListener(marker -> {
-                        marker.showInfoWindow();
-                        return true;
-                    });
+                    new AlertDialog.Builder(getActivity())
+                            .setMessage("Would you like to add a class to this location?")
+                            .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Marker marker = mMap.addMarker(new MarkerOptions()
+                                            .position(location)
+                                            .title(place.getName()));
+                                    promptForInfo(marker);
+                                }
+                            })
+                            .setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            }).show();
                 }
             }
-
             @Override
-            public void onError(@NonNull Status status) {
-                // Handle the error
-                Log.i(TAG, "An error occurred: " + status);
-            }
+            public void onError(@NonNull Status status) {Log.e(TAG, "An error occurred: " + status);}
         });
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
-                .findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
 
         return view;
     }
+
+    private void promptForInfo(final Marker marker) {
+        promptSingleInput("Enter Class Name", "", className -> {
+            promptSingleInput("Enter Class Days", "", classDays -> {
+                promptSingleInput("Enter Class Room #", "", classRoom -> {
+                    LatLng position = marker.getPosition();
+                    int pinId = db.addPin(position.latitude, position.longitude, className, classDays, classRoom, wiscId);
+                    marker.setTitle(className);
+                    markerList.add(marker);
+                    pinIdList.add(pinId);
+                    marker.showInfoWindow();
+                });
+            });
+        });
+    }
+
+    private void promptSingleInput(String title, String initialValue, Consumer<String> onInput) {
+        final EditText input = new EditText(getContext());
+        input.setText(initialValue);
+
+        new AlertDialog.Builder(getContext())
+                .setTitle(title)
+                .setCancelable(false)
+                .setView(input)
+                .setPositiveButton("OK", (dialog, which) -> {
+                    String inputText = input.getText().toString();
+                    onInput.accept(inputText);
+                })
+                .show();
+    }
+
+    private void editPin(Marker marker, int pinId, DatabaseHelper.PinData pinData) {
+        promptSingleInput("Edit Class Name", pinData.className, className -> {
+            promptSingleInput("Edit Class Days", pinData.classDays, classDays -> {
+                promptSingleInput("Edit Class Room #", pinData.classRoom, classRoom -> {
+                    LatLng position = marker.getPosition();
+                    db.updatePin(pinId, position.latitude, position.longitude, className, classDays, classRoom);
+                    marker.setTitle(className);
+                    marker.showInfoWindow();
+                });
+            });
+        });
+    }
+
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -113,11 +176,35 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     LOCATION_PERMISSION_REQUEST_CODE);
         }
-
-        // Example usage of the WISC ID in the map logic
-        // Set the camera to your specified coordinates
         LatLng initialLocation = new LatLng(43.074527, -89.4052735);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(initialLocation, 15));
+
+        loadPinsFromDatabase();
+
+        mMap.setOnMarkerClickListener(marker -> {
+            showMarkerInfo(marker);
+            marker.showInfoWindow();
+            return false;
+        });
+
+        mMap.setOnMapClickListener(latLng -> {
+            new AlertDialog.Builder(getActivity())
+                    .setMessage("Would you like to add a class to this location?")
+                    .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            Marker marker = mMap.addMarker(new MarkerOptions()
+                                    .position(latLng)
+                                    .title("New Location")
+                                    .icon(BitmapDescriptorFactory.defaultMarker(getRandomColor())));
+                            promptForInfo(marker);
+                        }
+                    })
+                    .setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    }).show();
+        });
     }
 
     @Override
@@ -135,5 +222,65 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 Toast.makeText(getContext(), "Permission denied", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    private void showMarkerInfo(Marker marker) {
+        int index = markerList.indexOf(marker);
+        if (index != -1) {
+            int pinId = pinIdList.get(index);
+            DatabaseHelper.PinData pinData = db.getPinById(pinId);
+
+            if (pinData != null) {
+                String info = "Class Name: " + pinData.className + "\nDays: " + pinData.classDays + "\nRoom: " + pinData.classRoom;
+
+                new AlertDialog.Builder(getActivity())
+                        .setMessage(info)
+                        .setPositiveButton("DELETE", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                new AlertDialog.Builder(getActivity())
+                                        .setMessage("Are you sure you want to delete?")
+                                        .setPositiveButton("DELETE", new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                db.deletePin(pinId);
+                                                marker.remove();
+                                                markerList.remove(index);
+                                                pinIdList.remove(index);
+                                            }
+                                        })
+                                        .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                dialog.dismiss();
+                                            }
+                                        }).show();
+                            }
+                        })
+                        .setNeutralButton("DISMISS", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .setNegativeButton("EDIT", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                editPin(marker, pinId, pinData);
+                            }
+                        }).show();
+            }
+        }
+    }
+    private void loadPinsFromDatabase() {
+        DatabaseHelper db = new DatabaseHelper(getContext());
+        List<DatabaseHelper.PinData> pins = db.getPinsByWiscId(wiscId);
+        for (DatabaseHelper.PinData pin : pins) {
+            Marker marker = mMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(pin.latitude, pin.longitude))
+                    .title(pin.className)
+                    .icon(BitmapDescriptorFactory.defaultMarker(getRandomColor())));
+            markerList.add(marker);
+            pinIdList.add(pin.id);
+        }
+    }
+
+    private float getRandomColor() {
+        return random.nextFloat() * 360;
     }
 }

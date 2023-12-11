@@ -30,9 +30,10 @@ public class NewClassFragment extends Fragment {
     private ArrayAdapter<String> taskAdapter;
     View view;
     private String wiscId; // Variable to store WISC ID
-    private int taskId;
+    private int classId;
     private boolean updating;
-    private boolean successfulAdd;
+
+    private DatabaseHelper db;
 
     private int[] weekdayIds = {R.id.monday_dot, R.id.tuesday_dot, R.id.wednesday_dot,
             R.id.thursday_dot, R.id.friday_dot, R.id.saturday_dot, R.id.sunday_dot};
@@ -48,10 +49,17 @@ public class NewClassFragment extends Fragment {
         checkedDaysIds = new ArrayList<Integer>();
         checkedDays = new ArrayList<String>();
         checkedDaysRange = new ArrayList<String>();
+        db = new DatabaseHelper(getActivity());
 
         if (getArguments() != null) {
             wiscId = getArguments().getString("WISC_ID");
+            classId = getArguments().getInt("CLASS_ID");
         }
+        if (classId != 0) {
+            updating = true;
+            populateEntries();
+        }
+
 
         Button saveClassButton = view.findViewById(R.id.save_class_button);
         saveClassButton.setOnClickListener(new View.OnClickListener() {
@@ -200,9 +208,11 @@ public class NewClassFragment extends Fragment {
                         class_range += checkedDaysRange.get(i);
                     }
 
-                    System.out.println("[(" + class_name + ") , (" + class_days + ") , ("+ class_range + ") , (" + wiscId + ")]");
-                    DatabaseHelper db = new DatabaseHelper(getActivity());
-                    db.addClass(class_name, class_days, class_range, wiscId);
+                    if (updating) {
+                        db.updateClass(classId, class_name, class_days, class_range, wiscId);
+                    } else {
+                        db.addClass(class_name, class_days, class_range, wiscId);
+                    }
 
                     // After successful add
                     Bundle result = new Bundle();
@@ -219,7 +229,6 @@ public class NewClassFragment extends Fragment {
                                 public void onClick(DialogInterface dialog, int which) {
                                     // Dismiss the dialog when "Ok" is clicked
                                     dialog.dismiss();
-
                                 }
                             }).show();
                     e.printStackTrace();
@@ -227,5 +236,64 @@ public class NewClassFragment extends Fragment {
             }
         });
         return view;
+    }
+
+    private void populateEntries() {
+        String[] classDetails = db.getClassById(classId);
+
+        String old_className = classDetails[0];
+        String old_classDays = classDetails[1];
+        String old_classRange = classDetails[2];
+
+        ((EditText) view.findViewById(R.id.class_name)).setText(old_className);
+
+        String[] old_daysArray = old_classDays.split(",");
+        String[] old_rangesArray = old_classRange.split(",");
+
+        for (int i = 0; i < old_daysArray.length; i++) {
+
+            String day = old_daysArray[i].trim();
+            String range = old_rangesArray[i].trim();
+            String[] times = range.split(" to ");
+
+            String[] startTime = times[0].split(":");
+            String[] endTime = times[1].split(":");
+
+            int checkBoxId = getResources().getIdentifier(day.toLowerCase() + "_dot", "id", getActivity().getPackageName());
+            CheckBox checkBox = view.findViewById(checkBoxId);
+            if (checkBox != null) {
+                checkBox.setChecked(true);
+            }
+
+            int old_fromHourId = getResources().getIdentifier(day.toLowerCase() + "_from_hour", "id", getActivity().getPackageName());
+            int old_fromMinuteId = getResources().getIdentifier(day.toLowerCase() + "_from_minute", "id", getActivity().getPackageName());
+            int old_toHourId = getResources().getIdentifier(day.toLowerCase() + "_to_hour", "id", getActivity().getPackageName());
+            int old_toMinuteId = getResources().getIdentifier(day.toLowerCase() + "_to_minute", "id", getActivity().getPackageName());
+
+            EditText fromHour = view.findViewById(old_fromHourId);
+            EditText fromMinute = view.findViewById(old_fromMinuteId);
+            EditText toHour = view.findViewById(old_toHourId);
+            EditText toMinute = view.findViewById(old_toMinuteId);
+
+            if (fromHour != null && fromMinute != null && toHour != null && toMinute != null) {
+                fromHour.setText(startTime[0]);
+                fromMinute.setText(startTime[1].substring(0, 2));
+                toHour.setText(endTime[0]);
+                toMinute.setText(endTime[1].substring(0, 2));
+
+                day = day.toLowerCase();
+                String startAmPm = startTime[1].substring(3);
+                String endAmPm = endTime[1].substring(3);
+
+                int fromAmPmId = getResources().getIdentifier(day + "_from_" + startAmPm.toLowerCase() + "_dot", "id", getActivity().getPackageName());
+                int toAmPmId = getResources().getIdentifier(day + "_to_" + endAmPm.toLowerCase() + "_dot", "id", getActivity().getPackageName());
+
+                RadioButton fromAmPm = view.findViewById(fromAmPmId);
+                RadioButton toAmPm = view.findViewById(toAmPmId);
+
+                if (fromAmPm != null) fromAmPm.setChecked(true);
+                if (toAmPm != null) toAmPm.setChecked(true);
+            }
+        }
     }
 }

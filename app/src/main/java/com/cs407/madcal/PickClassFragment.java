@@ -94,7 +94,18 @@ public class PickClassFragment extends Fragment {
                         })
                         .setNegativeButton("EDIT", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
+                                int classId = (int)classIds.get(position);
 
+                                Fragment editClassFragment = new NewClassFragment();
+                                Bundle bundle = new Bundle();
+                                bundle.putString("WISC_ID", wiscId);
+                                bundle.putInt("CLASS_ID", classId);
+                                editClassFragment.setArguments(bundle);;
+
+                                getActivity().getSupportFragmentManager().beginTransaction()
+                                        .replace(R.id.fragment_container, editClassFragment)
+                                        .addToBackStack(null)
+                                        .commit();
                             }
                         }).show();
                 //  End of Dialog Code

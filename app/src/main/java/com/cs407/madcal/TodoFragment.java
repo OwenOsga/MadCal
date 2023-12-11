@@ -122,7 +122,6 @@ public class TodoFragment extends Fragment {
                             }
                         }).show();
                 //  End of Dialog Code
-
             }
         });
 
