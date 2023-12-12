@@ -65,6 +65,7 @@ public class NewClassFragment extends Fragment {
         saveClassButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                System.out.println("Called onClick()!");
 
                 try {
                     String class_name = ((EditText) view.findViewById(R.id.class_name)).getText().toString().trim();
@@ -96,6 +97,7 @@ public class NewClassFragment extends Fragment {
                         return;
                     }
 
+                    boolean ret = false;
                     for (int id : checkedDaysIds) {
                         checkedDays.add(((CheckBox)view.findViewById(id)).getText().toString().trim());
                         String weekday = ((CheckBox)view.findViewById(id)).getText().toString().trim().toLowerCase();
@@ -136,7 +138,8 @@ public class NewClassFragment extends Fragment {
                                             dialog.dismiss();
                                         }
                                     }).show();
-                            return;
+                            ret = true;
+                            break;
                         }
 
                         radioGroup = view.findViewById(getResources()
@@ -157,7 +160,8 @@ public class NewClassFragment extends Fragment {
                                             dialog.dismiss();
                                         }
                                     }).show();
-                            return;
+                            ret = true;
+                            break;
                         }
 
                         System.out.println(class_name + " runs on " + weekday + " from " + from_hour + ":" + from_minute + " " + from_meridiem + " to " + to_hour + ":" + to_minute + " " + to_meridiem);
@@ -173,7 +177,8 @@ public class NewClassFragment extends Fragment {
                                             dialog.dismiss();
                                         }
                                     }).show();
-                            return;
+                            ret = true;
+                            break;
                         }
 
                         if (Integer.valueOf(from_hour) < 10 && from_hour.length() == 1) {
@@ -195,6 +200,13 @@ public class NewClassFragment extends Fragment {
                         String fromToRange = from_hour + ":" + from_minute + " " + from_meridiem +
                                 " to " + to_hour + ":" + to_minute + " " + to_meridiem;
                         checkedDaysRange.add(fromToRange);
+                    }
+
+                    if (ret) {
+                        checkedDays.clear();
+                        checkedDaysIds.clear();
+                        checkedDaysRange.clear();
+                        return;
                     }
 
                     String class_days = "";
