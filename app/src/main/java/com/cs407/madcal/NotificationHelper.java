@@ -19,7 +19,7 @@ public class NotificationHelper {
 
     public void createNotificationChannel(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = "Reminders"; // You can use R.string.channel_name
+            CharSequence name = "Reminders";
             String description = "This notification channel will provide reminders for upcoming deadlines."; // You can use R.string.channel_description
             int importance = NotificationManager.IMPORTANCE_HIGH;
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);

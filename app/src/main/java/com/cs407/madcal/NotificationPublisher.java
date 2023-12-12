@@ -18,11 +18,9 @@ public class NotificationPublisher extends BroadcastReceiver {
     public void onReceive(final Context context, Intent intent) {
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         int id = intent.getIntExtra(NOTIFICATION_ID, 0);
-        Log.d("onReceive", "the value of int id is:" + id );
         String title = intent.getStringExtra(NOTIFICATION_TITLE);
         String message = intent.getStringExtra(NOTIFICATION_MESSAGE);
-        Log.d("onReceive", "the value of title is:" + title );
-        Log.d("onReceive", "the value of message is:" + message );
+
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NotificationHelper.CHANNEL_ID)
                 .setContentTitle(title)

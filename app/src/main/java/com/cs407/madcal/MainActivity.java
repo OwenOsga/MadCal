@@ -229,7 +229,6 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
     }
-
     private void scheduleNotifications() {
         DatabaseHelper db = new DatabaseHelper(this);
         List<String[]> tasks = db.getTasksByWiscId(wiscId);
@@ -240,9 +239,6 @@ public class MainActivity extends AppCompatActivity {
         for (String[] task : tasks) {
             String fullTaskString = task[0];
             int taskId = Integer.parseInt(task[1]);
-
-            Log.d("TASK", "task: " + Arrays.toString(task)); // Add this line to log the date time string
-            Log.d("fullTaskString", "fullTaskString: " + fullTaskString); // Add this line to log the date time string
 
             // Extract the date-time string
             String dateTimeString = fullTaskString.substring(fullTaskString.indexOf("Due on: ") + 8).trim();
@@ -276,7 +272,6 @@ public class MainActivity extends AppCompatActivity {
 
         for (long interval : intervals) {
             long triggerTime = dueTime - interval;
-            Log.e("TIME", "dueTime: " + dueTime + " interval: " + interval);
 
             // Ensure triggerTime is in the future
             if (triggerTime > System.currentTimeMillis())  {
