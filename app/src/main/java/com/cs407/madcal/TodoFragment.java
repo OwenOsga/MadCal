@@ -43,7 +43,6 @@ public class TodoFragment extends Fragment {
     DatabaseHelper db;
     ArrayList<Integer> taskIdList;
     ArrayList<String> taskDescriptions;
-    ArrayList<Boolean> checkboxStates;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -60,8 +59,6 @@ public class TodoFragment extends Fragment {
 
         db = new DatabaseHelper(getActivity());
         createTaskList(view);
-        checkboxStates = new ArrayList<>();
-
 
         Button addTaskButton = view.findViewById(R.id.add_task_button);
         addTaskButton.setOnClickListener(new View.OnClickListener() {
@@ -81,7 +78,7 @@ public class TodoFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                int taskId = (int) taskIdList.get(position);
+                int taskId = (int)taskIdList.get(position);
 
                 //  Start of Dialog Code
                 new AlertDialog.Builder(getActivity())
@@ -110,14 +107,13 @@ public class TodoFragment extends Fragment {
                         })
                         .setNegativeButton("EDIT", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-                                int taskId = (int) taskIdList.get(position);
+                                int taskId = (int)taskIdList.get(position);
 
                                 Fragment editTaskFragment = new NewTaskFragment();
                                 Bundle bundle = new Bundle();
                                 bundle.putString("WISC_ID", wiscId);
                                 bundle.putInt("TASK_ID", taskId);
-                                editTaskFragment.setArguments(bundle);
-                                ;
+                                editTaskFragment.setArguments(bundle);;
 
                                 getActivity().getSupportFragmentManager().beginTransaction()
                                         .replace(R.id.fragment_container, editTaskFragment)
@@ -128,7 +124,6 @@ public class TodoFragment extends Fragment {
                 //  End of Dialog Code
             }
         });
-
 
         getParentFragmentManager().setFragmentResultListener("task_add_key", this, new FragmentResultListener() {
             @Override
@@ -141,12 +136,10 @@ public class TodoFragment extends Fragment {
 
         return view;
     }
-
     @Override
     public void onResume() {
         super.onResume();
         createTaskList(view);
-
     }
 
     private void createTaskList(View view) {
@@ -161,12 +154,8 @@ public class TodoFragment extends Fragment {
             taskIdList.add(Integer.parseInt(task[1]));
         }
 
-        checkboxStates = new ArrayList<>(taskDescriptions.size());
-        for (int i = 0; i < taskDescriptions.size(); i++) {
-            checkboxStates.add(false); // Initialize each checkbox as unchecked
-        }
-
-        CustomAdapter customAdapter = new CustomAdapter(view.getContext(), taskDescriptions, checkboxStates);
-        listView.setAdapter(customAdapter);
+        adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, taskDescriptions);
+        listView.setAdapter(adapter);
+        adapter.notifyDataSetChanged();
     }
 }
