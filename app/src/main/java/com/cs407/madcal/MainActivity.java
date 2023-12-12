@@ -3,7 +3,9 @@ package com.cs407.madcal;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentResultListener;
@@ -19,6 +21,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -38,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
 
     private ViewPager2 viewPager;
     String wiscId;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +63,6 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         }
-
 
 
         // Check if user is logged in
