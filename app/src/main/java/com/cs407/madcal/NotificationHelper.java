@@ -1,5 +1,6 @@
 package com.cs407.madcal;
 
+import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -14,36 +15,38 @@ import androidx.core.app.NotificationManagerCompat;
 
 public class NotificationHelper {
 
-    public static final String CHANNEL_ID = "channel_id";
+    public static final String CHANNEL_ID = "Reminders";
 
     public void createNotificationChannel(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = "Channel Name"; // You can use R.string.channel_name
-            String description = "Channel Description"; // You can use R.string.channel_description
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            CharSequence name = "Reminders"; // You can use R.string.channel_name
+            String description = "This notification channel will provide reminders for upcoming deadlines."; // You can use R.string.channel_description
+            int importance = NotificationManager.IMPORTANCE_HIGH;
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
             channel.setDescription(description);
             NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
         }
     }
+    @SuppressLint("ScheduleExactAlarm")
     public void scheduleNotification(Context context, String title, String message, long triggerTime, int taskId) {
-        // Use taskId as the notification ID
         Intent intent = new Intent(context, NotificationPublisher.class);
         intent.putExtra(NotificationPublisher.NOTIFICATION_ID, taskId);
         intent.putExtra(NotificationPublisher.NOTIFICATION_TITLE, title);
         intent.putExtra(NotificationPublisher.NOTIFICATION_MESSAGE, message);
 
+        // Generate a unique request code for each PendingIntent
+        int requestCode = (int) (System.currentTimeMillis() & 0xfffffff);
         PendingIntent pendingIntent;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            pendingIntent = PendingIntent.getBroadcast(context, taskId, intent, PendingIntent.FLAG_MUTABLE);
+            pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         } else {
-            pendingIntent = PendingIntent.getBroadcast(context, taskId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         }
 
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
+        alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
     }
 
     public void cancelNotification(Context context, int notificationId) {

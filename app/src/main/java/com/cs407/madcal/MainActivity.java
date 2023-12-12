@@ -15,6 +15,7 @@ import com.google.android.material.tabs.TabLayoutMediator;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -51,6 +52,15 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            if (alarmManager != null && !alarmManager.canScheduleExactAlarms()) {
+                Intent intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
+                startActivity(intent);
+            }
+        }
+
+
 
         // Check if user is logged in
         SharedPreferences sharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
@@ -269,24 +279,24 @@ public class MainActivity extends AppCompatActivity {
             Log.e("TIME", "dueTime: " + dueTime + " interval: " + interval);
 
             // Ensure triggerTime is in the future
-            if (triggerTime > System.currentTimeMillis()) {
+            if (triggerTime > System.currentTimeMillis())  {
                 String duration = getDurationString(interval);
-                Log.e("TASK", "Scheduled \"" + taskTitle + "\", fir when it is due in " + duration);
-                notificationHelper.scheduleNotification(this, taskTitle, "This task is due in " + duration, triggerTime, taskId);
+                Log.e("TASK", "Scheduled \"" + taskTitle + "\", for when it is due in " + duration);
+                notificationHelper.scheduleNotification(this, taskTitle, "This task is due in " + duration, triggerTime, taskId); // Convert back to milliseconds
             }
         }
     }
 
+
     private String getDurationString(long interval) {
-        if (interval >= 24 * 60 * 60 * 1000L) {
+        if (interval >= 24 * 60 * 60 * 1000) {
             return interval / (24 * 60 * 60 * 1000L) + " day(s)!";
         } else if (interval >= 60 * 60 * 1000L) {
-            return interval / (60 * 60 * 1000L) + " hour(s)!";
+            return interval / (60 * 60 * 1000L ) + " hour(s)!";
         } else if (interval == 60 * 1000L) {
             return "1 minute! You should get to submitting!";
         } else {
             return interval / 60000 + " minutes";
         }
     }
-
 }
