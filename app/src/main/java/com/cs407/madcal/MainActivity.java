@@ -266,6 +266,7 @@ public class MainActivity extends AppCompatActivity {
 
         for (long interval : intervals) {
             long triggerTime = dueTime - interval;
+            Log.e("TIME", "dueTime: " + dueTime + " interval: " + interval);
 
             // Ensure triggerTime is in the future
             if (triggerTime > System.currentTimeMillis()) {
