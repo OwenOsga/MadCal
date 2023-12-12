@@ -153,13 +153,20 @@ public class NewTaskFragment extends Fragment {
                             db.addTask(task, taskDate, taskTime, wiscId);
                         }
 
-                        // After successful add
-                        Bundle result = new Bundle();
-                        result.putBoolean("added", true);
-                        getParentFragmentManager().setFragmentResult("task_add_key", result);
+                        Bundle notificationResult = new Bundle();
+                        notificationResult.putString("taskTitle", task);
+                        notificationResult.putString("taskDateTime", taskDate + " " + taskTime);
+                        notificationResult.putInt("taskId", taskId);
+                        getParentFragmentManager().setFragmentResult("task_notification_key", notificationResult);
+
+                        Bundle listUpdateResult = new Bundle();
+                        listUpdateResult.putBoolean("added", true);
+                        getParentFragmentManager().setFragmentResult("task_add_key", listUpdateResult);
+
                         getFragmentManager().popBackStack();
                     }
                 } catch (Exception e) {
+                    e.printStackTrace();
                     //  Start of Dialog Code
                     new AlertDialog.Builder(getActivity())
                             .setMessage("There was an error processing your task. Make sure each box is filled and a valid date is entered.")

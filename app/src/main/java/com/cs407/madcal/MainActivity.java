@@ -1,30 +1,56 @@
 package com.cs407.madcal;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentResultListener;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
 public class MainActivity extends AppCompatActivity {
 
     private ViewPager2 viewPager;
+    String wiscId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Notification permissions
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (!NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+                Intent intent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        .putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+                startActivity(intent);
+            }
+        }
 
         // Check if user is logged in
         SharedPreferences sharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
@@ -36,10 +62,14 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        String wiscId = sharedPreferences.getString("WISC_ID", ""); // Retrieve the WISC ID from SharedPreferences
+        wiscId = sharedPreferences.getString("WISC_ID", ""); // Retrieve the WISC ID from SharedPreferences
         if (wiscId == null) {
             logout();
         }
+
+        NotificationHelper notificationHelper = new NotificationHelper();
+        notificationHelper.createNotificationChannel(this);
+        scheduleNotifications();
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -82,17 +112,46 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        getSupportFragmentManager().setFragmentResultListener("task_notification_key", this, new FragmentResultListener() {
+            @Override
+            public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle result) {
+                String taskTitle = result.getString("taskTitle");
+                String taskDateTime = result.getString("taskDateTime");
+                int taskId = result.getInt("taskId");
+                handleTaskUpdate(taskTitle, taskDateTime, taskId);
+            }
+        });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+
         // Check if user is logged in
         SharedPreferences sharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
         boolean isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
         if (!isLoggedIn) {
             navigateToLogin();
             return;
+        }
+    }
+
+    private void handleTaskUpdate(String taskTitle, String taskDateTime, int taskId) {
+        Log.e("HANDLE", "We are about to schedule " + taskTitle + " of ID: " + taskId + " which is due " + taskDateTime);
+        NotificationHelper notificationHelper = new NotificationHelper();
+        notificationHelper.cancelNotification(this, taskId);
+
+        SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm a", Locale.getDefault());
+        try {
+            Date dueDate = dateTimeFormat.parse(taskDateTime);
+            if (dueDate != null) {
+                long dueTime = dueDate.getTime();
+                Log.e("HANDLE", "START!");
+                scheduleNotificationForTask(taskTitle, dueTime, taskId);
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
     }
 
@@ -130,7 +189,18 @@ public class MainActivity extends AppCompatActivity {
                     .show();
             return true;
         } else if (itemId == R.id.action_logout) {
-            logout();
+            new AlertDialog.Builder(MainActivity.this)
+                    .setMessage("Are you sure you want to log out of id: " + wiscId + "?")
+                    .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            logout();
+                        }
+                    })
+                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    }).show();
             return true;
         }
 
@@ -149,4 +219,73 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
     }
+
+    private void scheduleNotifications() {
+        DatabaseHelper db = new DatabaseHelper(this);
+        List<String[]> tasks = db.getTasksByWiscId(wiscId);
+
+        SimpleDateFormat dateTimeFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm a", Locale.getDefault());
+        long currentTime = System.currentTimeMillis();
+
+        for (String[] task : tasks) {
+            String fullTaskString = task[0];
+            int taskId = Integer.parseInt(task[1]);
+
+            Log.d("TASK", "task: " + Arrays.toString(task)); // Add this line to log the date time string
+            Log.d("fullTaskString", "fullTaskString: " + fullTaskString); // Add this line to log the date time string
+
+            // Extract the date-time string
+            String dateTimeString = fullTaskString.substring(fullTaskString.indexOf("Due on: ") + 8).trim();
+
+            try {
+                Date dueDate = dateTimeFormat.parse(dateTimeString);
+                if (dueDate != null) {
+                    long dueTime = dueDate.getTime();
+                    if (dueTime > currentTime) {
+                        scheduleNotificationForTask(fullTaskString.split("\n")[0], dueTime, taskId);
+                    }
+                }
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void scheduleNotificationForTask(String taskTitle, long dueTime, int taskId) {
+        long[] intervals = {
+                7 * 24 * 60 * 60 * 1000L, // 7 days
+                3 * 24 * 60 * 60 * 1000L, // 3 days
+                24 * 60 * 60 * 1000L,     // 1 day
+                12 * 60 * 60 * 1000L,     // 12 hours
+                3 * 60 * 60 * 1000L,      // 3 hours
+                60 * 60 * 1000L,          // 1 hour
+                60 * 1000L                // 1 minute
+        };
+
+        NotificationHelper notificationHelper = new NotificationHelper();
+
+        for (long interval : intervals) {
+            long triggerTime = dueTime - interval;
+
+            // Ensure triggerTime is in the future
+            if (triggerTime > System.currentTimeMillis()) {
+                String duration = getDurationString(interval);
+                Log.e("TASK", "Scheduled \"" + taskTitle + "\", fir when it is due in " + duration);
+                notificationHelper.scheduleNotification(this, taskTitle, "This task is due in " + duration, triggerTime, taskId);
+            }
+        }
+    }
+
+    private String getDurationString(long interval) {
+        if (interval >= 24 * 60 * 60 * 1000L) {
+            return interval / (24 * 60 * 60 * 1000L) + " day(s)!";
+        } else if (interval >= 60 * 60 * 1000L) {
+            return interval / (60 * 60 * 1000L) + " hour(s)!";
+        } else if (interval == 60 * 1000L) {
+            return "1 minute! You should get to submitting!";
+        } else {
+            return interval / 60000 + " minutes";
+        }
+    }
+
 }

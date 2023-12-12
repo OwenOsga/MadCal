@@ -98,12 +98,10 @@ public class ScheduleFragment extends Fragment {
         List<String> classSchedules = new ArrayList<>();
 
         for (String day : daysOfWeek) {
-            Log.e("day", day);
             List<String> classesForDay = db.getClassesByDay(day, wiscId);
-            Log.e("classesForDay", classesForDay.toString());
-            StringBuilder daySchedule = new StringBuilder(day + ":");
+            StringBuilder daySchedule = new StringBuilder(day + ":\n");
             for (String classInfo : classesForDay) {
-                daySchedule.append("\n\n").append(classInfo);
+                daySchedule.append("\n").append(classInfo);
             }
             classSchedules.add(daySchedule.toString());
         }

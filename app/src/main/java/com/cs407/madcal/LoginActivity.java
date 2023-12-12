@@ -58,6 +58,18 @@ public class LoginActivity extends AppCompatActivity {
     private void verifyFromSQLite() {
         String wiscId = editTextWiscId.getText().toString().trim();
 
+        if (wiscId.isEmpty() || wiscId.length() < 1) {
+            new android.app.AlertDialog.Builder(this)
+                    .setMessage("You must enter an id.")
+                    .setPositiveButton("DISMISS", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .show();
+            return;
+        }
+
         if (databaseHelper.checkUser(wiscId)) {
             onSuccessfulLogin(wiscId);
         } else {
